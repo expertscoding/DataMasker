@@ -1,4 +1,4 @@
-﻿namespace DataMasker.Runner
+﻿namespace DataMasker.Utils
 {
     public enum ProgressType
     {

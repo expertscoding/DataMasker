@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 
@@ -65,6 +66,14 @@ namespace DataMasker.DataSources
         {
             return tableData[tableConfig.Name];
         }
+        
+        
+        /// <inheritdoc/>
+        public Task<IEnumerable<IDictionary<string, object>>> GetDataAsync(
+            TableConfig tableConfig)
+        {
+            return Task.FromResult(GetData(tableConfig));
+        }
 
         /// <inheritdoc/>
         public void UpdateRow(
@@ -86,6 +95,15 @@ namespace DataMasker.DataSources
 
             tables[tableConfig.Name][index] = row;
         }
+        
+        /// <inheritdoc/>
+        public Task UpdateRowAsync(
+            IDictionary<string, object> row,
+            TableConfig tableConfig)
+        {
+            UpdateRow(row, tableConfig);
+            return Task.CompletedTask;
+        }
 
         /// <inheritdoc/>
         public void UpdateRows(
@@ -100,10 +118,27 @@ namespace DataMasker.DataSources
                 UpdateRow(dictionary, config);
             }
         }
+        
+        /// <inheritdoc/>
+        public Task UpdateRowsAsync(
+            IEnumerable<IDictionary<string, object>> rows,
+            int rowCount,
+            TableConfig config,
+            Action<int> updatedCallback)
+        {
+
+            UpdateRows(rows, rowCount, config, updatedCallback);
+            return Task.CompletedTask;
+        }
 
         public int GetCount(TableConfig config)
         {
             return tableData.Count;
+        }
+
+        public Task<int> GetCountAsync(TableConfig config)
+        {
+            return Task.FromResult(GetCount(config));
         }
     }
 }

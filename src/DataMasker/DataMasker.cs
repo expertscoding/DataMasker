@@ -72,31 +72,31 @@ namespace DataMasker
                 obj[columnConfig.Name] = existingValue;
             }
 
-          foreach (ColumnConfig columnConfig in tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Computed))
-          {
-            var separator = columnConfig.Separator ?? " ";
-            StringBuilder colValue = new StringBuilder();
-            bool first = true;
-            foreach (var sourceColumn in columnConfig.SourceColumns)
+            foreach (ColumnConfig columnConfig in tableConfig.Columns.Where(x => !x.Ignore && x.Type == DataType.Computed))
             {
-              if (!obj.ContainsKey(sourceColumn))
-              {
-                throw new Exception($"Source column {sourceColumn} could not be found.");
-              }
+                var separator = columnConfig.Separator ?? " ";
+                StringBuilder colValue = new StringBuilder();
+                bool first = true;
+                foreach (var sourceColumn in columnConfig.SourceColumns)
+                {
+                    if (!obj.ContainsKey(sourceColumn))
+                    {
+                        throw new Exception($"Source column {sourceColumn} could not be found.");
+                    }
 
-              if (first)
-              {
-                first = false;
-              }
-              else
-              {
-                colValue.Append(separator);
-              }
-              colValue.Append(obj[sourceColumn] ?? String.Empty);
-             }
-            obj[columnConfig.Name] = colValue.ToString();
-          }
-          return obj;
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        colValue.Append(separator);
+                    }
+                    colValue.Append(obj[sourceColumn] ?? String.Empty);
+                }
+                obj[columnConfig.Name] = colValue.ToString();
+            }
+            return obj;
         }
 
         private object GetUniqueValue(string tableName,
@@ -131,7 +131,5 @@ namespace DataMasker
             uniqueValues.Add(existingValue);
             return existingValue;
         }
-
-
     }
 }

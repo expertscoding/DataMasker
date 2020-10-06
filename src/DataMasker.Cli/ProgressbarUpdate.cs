@@ -1,6 +1,6 @@
 ﻿using Konsole;
 
-namespace DataMasker.Runner {
+namespace DataMasker.Cli {
     public class ProgressbarUpdate
     {
         public ProgressBar ProgressBar { get; set; }

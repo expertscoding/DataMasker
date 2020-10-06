@@ -34,10 +34,23 @@ namespace DataMasker.Models
         public DataGenerationConfig DataGeneration { get; set; }
         public string TablesConfigPath { get;  set; }
 
-        public static Config Load(string filePath)  
+        public static Config Load(string filePath)
+        {
+            return PopulateConfig(File.ReadAllText(filePath));
+        }
+
+        public static Config Load(Stream stream)
+        {
+            using (var streamReader = new StreamReader(stream))
+            {
+                return PopulateConfig(streamReader.ReadToEnd());
+            }
+        }
+
+        private static Config PopulateConfig(string json)
         {
             Config config = new Config();
-            JsonConvert.PopulateObject(File.ReadAllText(filePath), config);
+            JsonConvert.PopulateObject(json, config);
 
             if(config.Tables == null && string.IsNullOrEmpty(config.TablesConfigPath))
             {

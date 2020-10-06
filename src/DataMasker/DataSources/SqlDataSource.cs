@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 using DataMasker.Utils;
@@ -56,6 +57,25 @@ namespace DataMasker.DataSources
                 return (IEnumerable<IDictionary<string, object>>)connection.Query(BuildSelectSql(tableConfig), buffered: false);
             }
         }
+        
+        /// <summary>
+        /// Gets the data.
+        /// </summary>
+        /// <param name="tableConfig">The table configuration.</param>
+        /// <returns></returns>
+        /// <inheritdoc/>
+        public async Task<IEnumerable<IDictionary<string, object>>> GetDataAsync(
+            TableConfig tableConfig)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var result = await connection.QueryAsync(
+                    BuildSelectSql(tableConfig));
+
+                 return result.Select(i => (IDictionary<string,object>)i);
+            }
+        }
 
         /// <summary>
         /// Updates the row.
@@ -71,6 +91,23 @@ namespace DataMasker.DataSources
             {
                 connection.Open();
                 connection.Execute(BuildUpdateSql(tableConfig), row, null, commandType: CommandType.Text);
+            }
+        }
+        
+        /// <summary>
+        /// Updates the row.
+        /// </summary>
+        /// <param name="row">The row.</param>
+        /// <param name="tableConfig">The table configuration.</param>
+        /// <inheritdoc/>
+        public async Task UpdateRowAsync(
+            IDictionary<string, object> row,
+            TableConfig tableConfig)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                await connection.ExecuteAsync(BuildUpdateSql(tableConfig), row, null, commandType: CommandType.Text);
             }
         }
 
@@ -125,6 +162,57 @@ namespace DataMasker.DataSources
                 }
             }
         }
+        
+        /// <inheritdoc/>
+        public async Task UpdateRowsAsync(
+            IEnumerable<IDictionary<string, object>> rows,
+            int rowCount,
+            TableConfig config,
+            Action<int> updatedCallback)
+        {
+            int? batchSize = _sourceConfig.UpdateBatchSize;
+            if (batchSize == null ||
+                batchSize <= 0)
+            {
+                batchSize = rowCount;
+            }
+
+            IEnumerable<Batch<IDictionary<string, object>>> batches = Batch<IDictionary<string, object>>.BatchItems(
+                rows,
+                (
+                    objects,
+                    enumerable) => enumerable.Count() < batchSize);
+
+            int totalUpdated = 0;
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                foreach (Batch<IDictionary<string, object>> batch in batches)
+                {
+                    SqlTransaction sqlTransaction = connection.BeginTransaction();
+
+
+                    string sql = BuildUpdateSql(config);
+                    await connection.ExecuteAsync(sql, batch.Items, sqlTransaction, null, CommandType.Text);
+
+                    if (_sourceConfig.DryRun)
+                    {
+                        sqlTransaction.Rollback();
+                    }
+                    else
+                    {
+                        sqlTransaction.Commit();
+                    }
+
+
+                    if (updatedCallback != null)
+                    {
+                        totalUpdated += batch.Items.Count;
+                        updatedCallback.Invoke(totalUpdated);
+                    }
+                }
+            }
+        }
 
         public int GetCount(TableConfig config)
         {
@@ -136,6 +224,17 @@ namespace DataMasker.DataSources
             }
         }
 
+        
+        public async Task<int> GetCountAsync(TableConfig config)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                var count = await  connection.ExecuteScalarAsync(BuildCountSql(config));
+                return Convert.ToInt32(count);
+            }
+        }
+        
         /// <summary>
         /// Builds the update SQL.
         /// </summary>

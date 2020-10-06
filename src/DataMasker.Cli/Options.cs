@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace DataMasker.Runner
+namespace DataMasker.Cli
 {
     public class Options
     {
