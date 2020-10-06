@@ -23,6 +23,10 @@ namespace DataMasker
 
         private const int DEFAULT_RANT_MAX = 25;
 
+        private const decimal DEFAULT_MAX_DECIMAL = 1000M;
+        
+        private const decimal DEFAULT_MIN_DECIMAL = 0M;
+
         /// <summary>
         /// The data generation configuration
         /// </summary>
@@ -218,6 +222,10 @@ namespace DataMasker
                     return _faker.Parse(columnConfig.StringFormatPattern);
                 case DataType.Computed:
                   return null;
+                case DataType.Decimal:
+                    return _faker.Finance.Amount(
+                        ParseMinMaxValue(columnConfig, MinMax.Min, DEFAULT_MIN_DECIMAL),
+                        ParseMinMaxValue(columnConfig, MinMax.Max, DEFAULT_MAX_DECIMAL));
             }
 
 
@@ -248,6 +256,8 @@ namespace DataMasker
                     return val;
                 case DataType.DateOfBirth:
                     return DateTime.Parse(val);
+                case DataType.Decimal:
+                    return decimal.Parse(val);
             }
 
             throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null);
@@ -272,6 +282,9 @@ namespace DataMasker
 
                 case DataType.DateOfBirth:
                     return DateTime.Parse(unparsedValue);
+                
+                case DataType.Decimal:
+                    return decimal.Parse(unparsedValue);
             }
 
             throw new ArgumentOutOfRangeException(nameof(columnConfig.Type), columnConfig.Type, null);

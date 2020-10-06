@@ -58,6 +58,11 @@
         /// <summary>
         /// Indicates that the column value is computed from other indicated columns
         /// </summary>
-        Computed
+        Computed,
+        
+        /// <summary>
+        /// A random decimal number from min to max
+        /// </summary>
+        Decimal
     }
 }
