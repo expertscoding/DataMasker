@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Bogus;
 using Bogus.DataSets;
+using DataMasker.Extensions;
 using DataMasker.Interfaces;
 using DataMasker.Models;
 
@@ -90,9 +91,9 @@ namespace DataMasker
             }
 
             if (columnConfig.RetainEmptyStringValues &&
-                (existingValue is string && string.IsNullOrWhiteSpace((string)existingValue)))
+                (existingValue is string value && string.IsNullOrWhiteSpace(value)))
             {
-                return existingValue;
+                return value;
             }
 
             if (existingValue == null)
@@ -226,6 +227,12 @@ namespace DataMasker
                     return _faker.Finance.Amount(
                         ParseMinMaxValue(columnConfig, MinMax.Min, DEFAULT_MIN_DECIMAL),
                         ParseMinMaxValue(columnConfig, MinMax.Max, DEFAULT_MAX_DECIMAL));
+                case DataType.Nif:
+                    return _faker.SpanishNif();
+                case DataType.Cif:
+                    return _faker.SpanishCif();
+                case DataType.Naf:
+                    return _faker.SpanishNaf();
             }
 
 
@@ -245,22 +252,13 @@ namespace DataMasker
         {
             switch (dataType)
             {
-                case DataType.FirstName:
-                case DataType.LastName:
-                case DataType.Rant:
-                case DataType.Lorem:
-                case DataType.StringFormat:
-                case DataType.FullAddress:
-                case DataType.PhoneNumber:
-                case DataType.None:
-                    return val;
                 case DataType.DateOfBirth:
                     return DateTime.Parse(val);
                 case DataType.Decimal:
                     return decimal.Parse(val);
+                default:
+                    return val;
             }
-
-            throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null);
         }
 
         private dynamic ParseMinMaxValue(

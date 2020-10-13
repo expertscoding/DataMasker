@@ -2,12 +2,12 @@
 using System.Linq;
 using DataMasker.Models;
 
-namespace DataMasker
+namespace DataMasker.Extensions
 {
     /// <summary>
     /// Extensions
     /// </summary>
-    public static class Extensions
+    public static class ColumnsExtensions
     {
         /// <summary>
         /// Gets the select columns.

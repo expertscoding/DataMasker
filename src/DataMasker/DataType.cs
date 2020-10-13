@@ -63,6 +63,21 @@
         /// <summary>
         /// A random decimal number from min to max
         /// </summary>
-        Decimal
+        Decimal,
+        
+        /// <summary>
+        /// Spanish Tax Identification Number (Número de Identificación Fiscal). For people
+        /// </summary>
+        Nif,
+        
+        /// <summary>
+        /// Spanish Tax Identification Code (Código de Identificación Fiscal). For companies 
+        /// </summary>
+        Cif,
+        
+        /// <summary>
+        /// Spanish Social Security Affiliation Number (Número de Afiliación a la Seguridad Social). For people
+        /// </summary>
+        Naf
     }
 }
