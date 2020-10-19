@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using DataMasker.Models;
@@ -7,18 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
 
 namespace DataMasker.Function
 {
     public class DataMask
     {
         private readonly Runner _runner;
+        private const string DefaultEnvironment = "UAT";
 
         public DataMask(Runner runner)
         {
@@ -33,6 +32,8 @@ namespace DataMasker.Function
             try
             {
                 logger.LogInformation("Starting execution...");
+                var environment = req.Query["environment"].FirstOrDefault() ?? DefaultEnvironment;
+
 
                 logger.LogDebug("Getting configuration");
                 var configuration = new ConfigurationBuilder()
@@ -41,8 +42,8 @@ namespace DataMasker.Function
                     .AddEnvironmentVariables()
                     .Build();
 
-                logger.LogDebug("Getting masking configuration");
-                var config = await ReadConfig(configuration, logger);
+                logger.LogDebug($"Getting masking configuration for environment {environment}");
+                var config = await ReadConfig(configuration, logger, environment);
 
                 await _runner.Execute(config);
 
@@ -57,11 +58,11 @@ namespace DataMasker.Function
             }
         }
 
-        private async Task<Config> ReadConfig(IConfiguration configuration, ILogger logger)
+        private async Task<Config> ReadConfig(IConfiguration configuration, ILogger logger, string environment)
         {
             var connectionString = configuration.GetConnectionString("StorageAccount");
             var containerName = configuration.GetValue<string>("containerName");
-            var blobName = configuration.GetValue<string>("blobName");
+            var blobName = configuration.GetValue<string>($"blobName-{environment}");
 
             var storageAccount = CloudStorageAccount.Parse(connectionString);
 
